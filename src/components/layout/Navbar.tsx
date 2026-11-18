@@ -23,6 +23,14 @@ export default function Navbar() {
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [signOutError, setSignOutError] = useState("");
 
+  const visibleNavLinks = session
+    ? [
+        ...navLinks.slice(0, 2),
+        { label: "Dashboard", href: "/dashboard" },
+        ...navLinks.slice(2),
+      ]
+    : navLinks;
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -118,7 +126,7 @@ export default function Navbar() {
         </Link>
 
         <div className="hidden items-center gap-6 md:flex lg:gap-8">
-          {navLinks.map((item) => (
+          {visibleNavLinks.map((item) => (
             <Link
               key={item.href}
               href={item.href}
@@ -174,7 +182,9 @@ export default function Navbar() {
           <button
             type="button"
             onClick={() => setMenuOpen(!menuOpen)}
-            aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
+            aria-label={
+              menuOpen ? "Close navigation menu" : "Open navigation menu"
+            }
             aria-expanded={menuOpen}
             className="flex h-10 w-10 items-center justify-center rounded-lg border border-stone-300 text-stone-800 dark:border-stone-600 dark:text-white sm:hidden"
           >
@@ -186,7 +196,7 @@ export default function Navbar() {
       {menuOpen && (
         <div className="border-t border-stone-200 bg-[#f7f7f3] px-4 pb-4 pt-2 dark:border-stone-700 dark:bg-stone-900 sm:hidden">
           <div className="mx-auto flex max-w-7xl flex-col">
-            {navLinks.map((item) => (
+            {visibleNavLinks.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
@@ -235,7 +245,10 @@ export default function Navbar() {
             </div>
 
             {signOutError && (
-              <p role="alert" className="mt-3 text-sm text-red-600 dark:text-red-400">
+              <p
+                role="alert"
+                className="mt-3 text-sm text-red-600 dark:text-red-400"
+              >
                 {signOutError}
               </p>
             )}
