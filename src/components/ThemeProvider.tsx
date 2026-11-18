@@ -14,9 +14,9 @@ export default function ThemeProvider({
       defaultTheme="light"
       enableSystem={false}
       storageKey="salonbook-theme"
-      disableTransitionOnChange
     >
       {children}
     </NextThemesProvider>
   );
 }
+

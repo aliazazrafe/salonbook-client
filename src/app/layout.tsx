@@ -1,11 +1,9 @@
-import type { Metadata } from "next";
-import type { ReactNode } from "react";
+﻿import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-
+import "./globals.css";
 import ThemeProvider from "@/components/ThemeProvider";
 import Navbar from "@/components/layout/Navbar";
-
-import "./globals.css";
+import Footer from "@/components/layout/Footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,26 +17,27 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "SalonBook | Men's Salon & Grooming",
+    default: "SalonBook | Men’s Salon & Grooming",
     template: "%s | SalonBook",
   },
-  description:
-    "Book men's haircuts, beard grooming, hair treatments, and more with SalonBook.",
+  description: "Explore men’s salon and grooming services with SalonBook.",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{ children: ReactNode }>) {
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} flex min-h-dvh flex-col bg-background font-sans text-foreground antialiased`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ThemeProvider>
           <Navbar />
           {children}
+          <Footer />
         </ThemeProvider>
       </body>
     </html>
   );
 }
+
