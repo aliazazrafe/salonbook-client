@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -7,8 +7,8 @@ import { useEffect, useState } from "react";
 const navigation = [
   { label: "Home", href: "/" },
   { label: "Browse Services", href: "/services" },
-  { label: "About Us", href: "/#about" },
-  { label: "Contact", href: "/#contact" },
+  { label: "About Us", href: "/about" },
+  { label: "Contact", href: "/contact" },
 ];
 
 export default function Navbar() {
@@ -213,3 +213,4 @@ export default function Navbar() {
     </header>
   );
 }
+
