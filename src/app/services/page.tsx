@@ -1,127 +1,51 @@
 ﻿"use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
-const services = [
-  {
-    id: "classic-haircut",
-    name: "Classic Haircut",
-    category: "Haircut & Styling",
-    description: "A clean, classic haircut tailored to your style.",
-    price: 800,
-    duration: 45,
-    image:
-      "https://images.pexels.com/photos/7518755/pexels-photo-7518755.jpeg?auto=compress&cs=tinysrgb&w=1000",
-  },
-  {
-    id: "skin-fade",
-    name: "Skin Fade",
-    category: "Haircut & Styling",
-    description: "A precise fade finished to suit your look.",
-    price: 900,
-    duration: 50,
-    image: "https://barbertheme.pages.dev/img/slider/3.jpg",
-  },
-  {
-    id: "haircut-beard-combo",
-    name: "Haircut & Beard Combo",
-    category: "Beard Grooming",
-    description: "A fresh haircut paired with a professional beard trim.",
-    price: 1100,
-    duration: 65,
-    image:
-      "https://images.unsplash.com/photo-1599011176306-4a96f1516d4d?auto=format&fit=crop&w=1000&q=85",
-  },
-  {
-    id: "hair-coloring",
-    name: "Men’s Hair Coloring",
-    category: "Hair Coloring",
-    description: "Refresh your look with professional hair coloring.",
-    price: 1800,
-    duration: 90,
-    image: "https://www.welefulunisexsalon.com/images/services/13-colour.png",
-  },
-  {
-    id: "grey-coverage",
-    name: "Grey Coverage",
-    category: "Hair Coloring",
-    description: "Natural-looking color to blend or cover grey hair.",
-    price: 1500,
-    duration: 75,
-    image:
-      "https://images.pexels.com/photos/7389077/pexels-photo-7389077.jpeg?auto=compress&cs=tinysrgb&w=1000",
-  },
-  {
-    id: "hair-treatment",
-    name: "Hair Treatment",
-    category: "Hair Treatment",
-    description: "A nourishing treatment for healthier, softer hair.",
-    price: 1400,
-    duration: 60,
-    image:
-      "https://images.pexels.com/photos/17553843/pexels-photo-17553843.jpeg?auto=compress&cs=tinysrgb&w=1000",
-  },
-  {
-    id: "scalp-treatment",
-    name: "Scalp Treatment",
-    category: "Hair Treatment",
-    description: "A cleansing scalp treatment for a refreshed feel.",
-    price: 1200,
-    duration: 50,
-    image: "https://hofg.co.uk/assets/gallery-5-CDsSirrN.jpg",
-  },
-  {
-    id: "mens-facial",
-    name: "Men’s Facial",
-    category: "Facial & Skincare",
-    description: "A refreshing facial treatment for men’s skin.",
-    price: 1200,
-    duration: 60,
-    image: "https://www.welefulunisexsalon.com/images/blog/blog-20.png",
-  },
-  {
-    id: "charcoal-facial",
-    name: "Charcoal Facial",
-    category: "Facial & Skincare",
-    description: "A deep-cleansing facial to leave your skin feeling fresh.",
-    price: 1500,
-    duration: 70,
-    image: "/services/charcoal-facial.webp",
-  },
-  {
-    id: "beard-shaping",
-    name: "Beard Shaping",
-    category: "Beard Grooming",
-    description: "Careful trimming and shaping for a neat beard style.",
-    price: 600,
-    duration: 30,
-    image: "/services/beard-shaping.jpg",
-  },
-  {
-    id: "mens-manicure",
-    name: "Men’s Manicure",
-    category: "Manicure & Pedicure",
-    description: "Neat nail grooming and hand care in one session.",
-    price: 900,
-    duration: 40,
-    image:
-      "https://images.pexels.com/photos/7755173/pexels-photo-7755173.jpeg?auto=compress&cs=tinysrgb&w=1000",
-  },
-  {
-    id: "scalp-massage",
-    name: "Scalp Massage",
-    category: "Spa & Massage",
-    description: "A calming scalp massage to help you unwind.",
-    price: 700,
-    duration: 30,
-    image:
-      "https://img1.wsimg.com/isteam/ip/dbbb5924-150a-4ec7-a833-ef2cb590d0c3/Men%20Head%20Spa.png",
-  },
-];
+type ApiService = {
+  _id?: string;
+  id?: string;
+  serviceName?: string;
+  name?: string;
+  category?: string;
+  description?: string;
+  price?: number;
+  duration?: number;
+  image?: string;
+  imageUrl?: string;
+  images?: string[];
+  status?: string;
+  isActive?: boolean;
+};
 
-const categories = [
-  "All Services",
+type Service = {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  price: number;
+  duration: number;
+  image: string;
+  status: string;
+  isActive: boolean;
+};
+
+type ServicesResponse = {
+  success?: boolean;
+  message?: string;
+  services?: ApiService[];
+};
+
+type SortOrder = "default" | "price-low-high" | "price-high-low";
+
+const API_URL = (
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
+).replace(/\/+$/, "");
+
+const fallbackImage = "/heroimage/gent-salon.png";
+
+const baseCategories = [
   "Haircut & Styling",
   "Hair Coloring",
   "Hair Treatment",
@@ -131,68 +55,156 @@ const categories = [
   "Spa & Massage",
 ];
 
-type SortOrder = "default" | "price-low-high" | "price-high-low";
-
 function formatPrice(price: number) {
-  return `৳${price.toLocaleString("en-BD")}`;
+  return `৳${new Intl.NumberFormat("en-BD").format(price)}`;
+}
+
+function isActiveService(service: ApiService) {
+  return (
+    service.isActive === true ||
+    service.status?.toLowerCase() === "active"
+  );
 }
 
 export default function ServicesPage() {
+  const [services, setServices] = useState<Service[]>([]);
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("All Services");
   const [sortOrder, setSortOrder] = useState<SortOrder>("default");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [retryKey, setRetryKey] = useState(0);
+
+  const loadServices = useCallback(async (signal: AbortSignal) => {
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch(
+        `${API_URL}/api/services?status=active&limit=50`,
+        {
+          signal,
+          cache: "no-store",
+        }
+      );
+
+      const result: ServicesResponse = await response.json();
+
+      if (!response.ok || !result.success || !Array.isArray(result.services)) {
+        throw new Error(result.message || "Could not load salon services.");
+      }
+
+      const activeServices = result.services
+        .filter(isActiveService)
+        .map((service, index) => {
+          const name =
+            service.serviceName || service.name || "Salon service";
+
+          return {
+            id: service._id || service.id || `${name}-${index}`,
+            name,
+            category: service.category || "Grooming",
+            description: service.description || "",
+            price: typeof service.price === "number" ? service.price : 0,
+            duration:
+              typeof service.duration === "number" ? service.duration : 0,
+            image:
+              service.image ||
+              service.imageUrl ||
+              service.images?.[0] ||
+              fallbackImage,
+            status: service.status || "Active",
+            isActive: service.isActive === true || isActiveService(service),
+          };
+        });
+
+      setServices(activeServices);
+    } catch (error) {
+      if (signal.aborted) return;
+
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Could not connect to the server."
+      );
+    } finally {
+      if (!signal.aborted) {
+        setLoading(false);
+      }
+    }
+  }, []);
 
   useEffect(() => {
-    const categoryFromUrl = new URLSearchParams(window.location.search).get(
-      "category"
-    );
+    const controller = new AbortController();
 
-    if (categoryFromUrl && categories.includes(categoryFromUrl)) {
+    void loadServices(controller.signal);
+
+    return () => controller.abort();
+  }, [loadServices, retryKey]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const searchFromUrl = params.get("search") || "";
+    const categoryFromUrl = params.get("category") || "";
+
+    setSearch(searchFromUrl);
+
+    if (categoryFromUrl) {
       setActiveCategory(categoryFromUrl);
     }
   }, []);
 
+  const categories = useMemo(() => {
+    const serviceCategories = services
+      .map((service) => service.category)
+      .filter(Boolean);
+
+    return [
+      "All Services",
+      ...new Set([...baseCategories, ...serviceCategories]),
+    ];
+  }, [services]);
+
   const filteredServices = useMemo(() => {
     const query = search.trim().toLowerCase();
 
-    const result = services.filter((service) => {
+    const filtered = services.filter((service) => {
       const matchesCategory =
         activeCategory === "All Services" ||
         service.category === activeCategory;
 
-      const matchesSearch =
-        query.length === 0 ||
-        `${service.name} ${service.category} ${service.description}`
-          .toLowerCase()
-          .includes(query);
+      const searchableText =
+        `${service.name} ${service.category} ${service.description}`.toLowerCase();
+
+      const matchesSearch = !query || searchableText.includes(query);
 
       return matchesCategory && matchesSearch;
     });
 
     if (sortOrder === "price-low-high") {
-      return result.sort((a, b) => a.price - b.price);
+      return filtered.sort((a, b) => a.price - b.price);
     }
 
     if (sortOrder === "price-high-low") {
-      return result.sort((a, b) => b.price - a.price);
+      return filtered.sort((a, b) => b.price - a.price);
     }
 
-    return result;
-  }, [search, activeCategory, sortOrder]);
+    return filtered;
+  }, [services, search, activeCategory, sortOrder]);
 
   return (
-    <main className="min-h-screen bg-stone-50 px-5 py-12 sm:px-8 lg:py-16">
+    <main className="min-h-screen bg-stone-50 px-5 py-12 dark:bg-stone-950 sm:px-8 lg:py-16">
       <div className="mx-auto max-w-7xl">
         <header className="mb-9 text-center">
-          <p className="mb-2 text-sm font-bold uppercase tracking-[0.2em] text-orange-700">
+          <p className="mb-2 text-sm font-bold uppercase tracking-[0.2em] text-orange-700 dark:text-orange-400">
             Find your next look
           </p>
 
-          <h1 className="text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl">
+          <h1 className="text-3xl font-bold tracking-tight text-stone-900 dark:text-white sm:text-4xl">
             Browse Salon Services
           </h1>
 
-          <p className="mx-auto mt-3 max-w-2xl leading-7 text-stone-600">
+          <p className="mx-auto mt-3 max-w-2xl leading-7 text-stone-600 dark:text-stone-300">
             Explore professional men’s grooming services and find the right one
             for you.
           </p>
@@ -209,19 +221,19 @@ export default function ServicesPage() {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Search haircut, beard grooming, facial..."
-            className="w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-stone-900 outline-none placeholder:text-stone-400 focus:border-orange-700 focus:ring-2 focus:ring-orange-700/15"
+            className="w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-stone-900 outline-none placeholder:text-stone-400 focus:border-orange-700 focus:ring-2 focus:ring-orange-700/15 dark:border-stone-700 dark:bg-stone-900 dark:text-white dark:placeholder:text-stone-500"
           />
         </div>
 
-        <div className="mb-6 flex justify-end">
-          <label className="flex items-center gap-3 text-sm font-medium text-stone-700">
+        <div className="mb-6 flex justify-start sm:justify-end">
+          <label className="flex items-center gap-3 text-sm font-medium text-stone-700 dark:text-stone-300">
             Sort by price
             <select
               value={sortOrder}
               onChange={(event) =>
                 setSortOrder(event.target.value as SortOrder)
               }
-              className="rounded-lg border border-stone-300 bg-white px-3 py-2 text-stone-800 outline-none focus:border-orange-700"
+              className="max-w-[180px] rounded-lg border border-stone-300 bg-white px-3 py-2 text-stone-800 outline-none focus:border-orange-700 dark:border-stone-700 dark:bg-stone-900 dark:text-white"
             >
               <option value="default">Recommended</option>
               <option value="price-low-high">Low to High</option>
@@ -232,17 +244,18 @@ export default function ServicesPage() {
 
         <div className="mb-8 flex gap-2 overflow-x-auto pb-2">
           {categories.map((category) => {
-            const isActive = activeCategory === category;
+            const selected = activeCategory === category;
 
             return (
               <button
                 key={category}
                 type="button"
+                aria-pressed={selected}
                 onClick={() => setActiveCategory(category)}
                 className={`shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition ${
-                  isActive
-                    ? "border-stone-900 bg-stone-900 text-white"
-                    : "border-stone-300 bg-white text-stone-700 hover:border-orange-700 hover:text-orange-800"
+                  selected
+                    ? "border-stone-900 bg-stone-900 text-white dark:border-white dark:bg-white dark:text-stone-900"
+                    : "border-stone-300 bg-white text-stone-700 hover:border-orange-700 hover:text-orange-800 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300 dark:hover:text-orange-400"
                 }`}
               >
                 {category}
@@ -251,53 +264,96 @@ export default function ServicesPage() {
           })}
         </div>
 
-        <p className="mb-5 text-sm text-stone-600" aria-live="polite">
-          Showing {filteredServices.length}{" "}
-          {filteredServices.length === 1 ? "service" : "services"}
-        </p>
+        {!loading && !error && (
+          <p className="mb-5 text-sm text-stone-600 dark:text-stone-400" aria-live="polite">
+            Showing {filteredServices.length}{" "}
+            {filteredServices.length === 1 ? "service" : "services"}
+          </p>
+        )}
 
-        {filteredServices.length > 0 ? (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
+        {loading && (
+          <div
+            aria-label="Loading services"
+            className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+          >
+            {Array.from({ length: 6 }).map((_, index) => (
+              <div
+                key={index}
+                className="animate-pulse overflow-hidden rounded-2xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900"
+              >
+                <div className="h-52 bg-stone-200 dark:bg-stone-800" />
+                <div className="space-y-3 p-5">
+                  <div className="h-3 w-2/5 rounded bg-stone-200 dark:bg-stone-800" />
+                  <div className="h-5 w-3/4 rounded bg-stone-200 dark:bg-stone-800" />
+                  <div className="h-4 w-full rounded bg-stone-200 dark:bg-stone-800" />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {!loading && error && (
+          <div
+            role="alert"
+            className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center dark:border-red-900 dark:bg-red-950/30"
+          >
+            <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
+            <button
+              type="button"
+              onClick={() => setRetryKey((current) => current + 1)}
+              className="mt-4 rounded-lg bg-stone-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-stone-700 dark:bg-white dark:text-stone-900 dark:hover:bg-stone-200"
+            >
+              Try again
+            </button>
+          </div>
+        )}
+
+        {!loading && !error && filteredServices.length > 0 && (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filteredServices.map((service) => (
               <article
                 key={service.id}
-                className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm transition-shadow hover:shadow-md"
+                className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm transition-shadow hover:shadow-md dark:border-stone-800 dark:bg-stone-900"
               >
-                <div className="h-52 overflow-hidden bg-stone-100">
+                <div className="h-52 overflow-hidden bg-stone-100 dark:bg-stone-800">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={service.image}
                     alt={`${service.name} for men`}
                     loading="lazy"
+                    onError={(event) => {
+                      event.currentTarget.src = fallbackImage;
+                    }}
                     className="h-full w-full object-cover"
                   />
                 </div>
 
                 <div className="p-5">
-                  <p className="mb-2 text-xs font-bold uppercase tracking-wide text-orange-800">
+                  <p className="mb-2 text-xs font-bold uppercase tracking-wide text-orange-800 dark:text-orange-400">
                     {service.category}
                   </p>
 
-                  <h2 className="text-xl font-bold text-stone-900">
+                  <h2 className="text-xl font-bold text-stone-900 dark:text-white">
                     {service.name}
                   </h2>
 
-                  <p className="mt-2 min-h-12 text-sm leading-6 text-stone-600">
+                  <p className="mt-2 min-h-12 text-sm leading-6 text-stone-600 dark:text-stone-300">
                     {service.description}
                   </p>
 
-                  <div className="mt-4 flex items-end justify-between border-t border-stone-100 pt-4">
+                  <div className="mt-4 flex items-end justify-between gap-3 border-t border-stone-100 pt-4 dark:border-stone-800">
                     <div>
-                      <p className="text-lg font-bold text-stone-900">
+                      <p className="text-lg font-bold text-stone-900 dark:text-white">
                         {formatPrice(service.price)}
                       </p>
-                      <p className="mt-1 text-sm text-stone-500">
+                      <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">
                         {service.duration} minutes
                       </p>
                     </div>
 
                     <Link
-                      href={`/services/${service.id}`}
-                      className="rounded-lg border border-stone-300 px-4 py-2.5 text-sm font-medium text-stone-800 transition hover:border-stone-900 hover:bg-stone-900 hover:text-white"
+                      href={`/services/${encodeURIComponent(service.id)}`}
+                      className="shrink-0 rounded-lg border border-stone-300 px-4 py-2.5 text-sm font-medium text-stone-800 transition hover:border-stone-900 hover:bg-stone-900 hover:text-white dark:border-stone-700 dark:text-stone-200 dark:hover:border-white dark:hover:bg-white dark:hover:text-stone-900"
                     >
                       View Details
                     </Link>
@@ -306,12 +362,14 @@ export default function ServicesPage() {
               </article>
             ))}
           </div>
-        ) : (
-          <div className="rounded-2xl border border-stone-200 bg-white px-5 py-12 text-center">
-            <h2 className="text-lg font-semibold text-stone-900">
+        )}
+
+        {!loading && !error && filteredServices.length === 0 && (
+          <div className="rounded-2xl border border-stone-200 bg-white px-5 py-12 text-center dark:border-stone-800 dark:bg-stone-900">
+            <h2 className="text-lg font-semibold text-stone-900 dark:text-white">
               No services found
             </h2>
-            <p className="mt-2 text-sm text-stone-600">
+            <p className="mt-2 text-sm text-stone-600 dark:text-stone-300">
               Try another search term or choose a different category.
             </p>
           </div>
@@ -320,4 +378,3 @@ export default function ServicesPage() {
     </main>
   );
 }
-

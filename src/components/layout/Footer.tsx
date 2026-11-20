@@ -76,9 +76,11 @@ function SocialIcon({ name }: { name: (typeof socialLinks)[number]["name"] }) {
 
 function socialColor(name: (typeof socialLinks)[number]["name"]) {
   if (name === "Facebook") return "bg-[#1877F2]";
+
   if (name === "Instagram") {
     return "bg-gradient-to-tr from-[#feda75] via-[#d62976] to-[#4f5bd5]";
   }
+
   return "bg-[#25D366]";
 }
 
@@ -126,10 +128,26 @@ export default function Footer() {
           <nav aria-label="Footer navigation">
             <h2 className="font-semibold text-white">Quick Links</h2>
             <ul className="mt-4 space-y-3 text-sm">
-              <li><Link className="hover:text-white" href="/">Home</Link></li>
-              <li><Link className="hover:text-white" href="/services">Browse Services</Link></li>
-              <li><Link className="hover:text-white" href="/about">About Us</Link></li>
-              <li><Link className="hover:text-white" href="/contact">Contact</Link></li>
+              <li>
+                <Link className="hover:text-white" href="/">
+                  Home
+                </Link>
+              </li>
+              <li>
+                <Link className="hover:text-white" href="/services">
+                  Browse Services
+                </Link>
+              </li>
+              <li>
+                <Link className="hover:text-white" href="/about">
+                  About Us
+                </Link>
+              </li>
+              <li>
+                <Link className="hover:text-white" href="/contact">
+                  Contact
+                </Link>
+              </li>
             </ul>
           </nav>
 
@@ -190,12 +208,9 @@ export default function Footer() {
         </div>
 
         <div className="mt-10 border-t border-stone-800 pt-6 text-sm text-stone-500">
-          <p>
-            © {new Date().getFullYear()} SalonBook. All rights reserved.
-          </p>
+          <p>© 2026 SalonBook. All rights reserved.</p>
         </div>
       </div>
     </footer>
   );
 }
-

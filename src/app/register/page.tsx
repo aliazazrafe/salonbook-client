@@ -21,8 +21,14 @@ export default function RegisterPage() {
     const image = String(formData.get("image") || "").trim();
     const password = String(formData.get("password") || "");
 
-    if (password.length < 6 || !/[a-z]/.test(password) || !/[A-Z]/.test(password)) {
-      setMessage("Use at least 6 characters, including one uppercase and one lowercase letter.");
+    if (
+      password.length < 6 ||
+      !/[a-z]/.test(password) ||
+      !/[A-Z]/.test(password)
+    ) {
+      setMessage(
+        "Use at least 6 characters, including one uppercase and one lowercase letter."
+      );
       setLoading(false);
       return;
     }
@@ -37,7 +43,9 @@ export default function RegisterPage() {
       });
 
       if (error) {
-        setMessage(error.message);
+        setMessage(
+          error.message ?? "Account creation failed. Please try again."
+        );
         return;
       }
 
@@ -61,7 +69,7 @@ export default function RegisterPage() {
       });
 
       if (error) {
-        setMessage(error.message);
+        setMessage(error.message ?? "Social sign up failed. Please try again.");
         setLoading(false);
       }
     } catch {
@@ -73,7 +81,10 @@ export default function RegisterPage() {
   return (
     <main className="flex min-h-[calc(100vh-76px)] items-center justify-center bg-stone-50 px-5 py-12 dark:bg-stone-950">
       <section className="w-full max-w-md rounded-2xl border border-stone-200 bg-white p-6 shadow-sm dark:border-stone-700 dark:bg-stone-900 sm:p-8">
-        <Link href="/" className="text-xl font-bold text-stone-900 dark:text-white">
+        <Link
+          href="/"
+          className="text-xl font-bold text-stone-900 dark:text-white"
+        >
           Salon<span className="text-[#647548]">Book</span>
         </Link>
 
@@ -172,7 +183,8 @@ export default function RegisterPage() {
               className="w-full rounded-lg border border-stone-300 bg-white px-4 py-3 text-stone-900 outline-none placeholder:text-stone-400 focus:border-[#647548] focus:ring-2 focus:ring-[#647548]/15 dark:border-stone-600 dark:bg-stone-800 dark:text-white"
             />
             <p className="mt-2 text-xs leading-5 text-stone-500 dark:text-stone-400">
-              Use at least 6 characters, including one uppercase and one lowercase letter.
+              Use at least 6 characters, including one uppercase and one
+              lowercase letter.
             </p>
           </div>
 

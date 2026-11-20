@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -27,7 +27,7 @@ export default function LoginPage() {
       });
 
       if (error) {
-        setMessage(error.message);
+        setMessage(error.message ?? "Sign in failed. Please try again.");
         return;
       }
 
@@ -51,7 +51,7 @@ export default function LoginPage() {
       });
 
       if (error) {
-        setMessage(error.message);
+        setMessage(error.message ?? "Social sign in failed. Please try again.");
         setLoading(false);
       }
     } catch {
@@ -63,7 +63,10 @@ export default function LoginPage() {
   return (
     <main className="flex min-h-[calc(100vh-76px)] items-center justify-center bg-stone-50 px-5 py-12 dark:bg-stone-950">
       <section className="w-full max-w-md rounded-2xl border border-stone-200 bg-white p-6 shadow-sm dark:border-stone-700 dark:bg-stone-900 sm:p-8">
-        <Link href="/" className="text-xl font-bold text-stone-900 dark:text-white">
+        <Link
+          href="/"
+          className="text-xl font-bold text-stone-900 dark:text-white"
+        >
           Salon<span className="text-[#647548]">Book</span>
         </Link>
 
@@ -123,6 +126,15 @@ export default function LoginPage() {
               placeholder="Enter your password"
               className="w-full rounded-lg border border-stone-300 bg-white px-4 py-3 text-stone-900 outline-none placeholder:text-stone-400 focus:border-[#647548] focus:ring-2 focus:ring-[#647548]/15 dark:border-stone-600 dark:bg-stone-800 dark:text-white"
             />
+          </div>
+
+          <div className="text-right">
+            <Link
+              href="/forgot-password"
+              className="text-sm font-semibold text-[#647548] hover:underline"
+            >
+              Forgot password?
+            </Link>
           </div>
 
           <button
