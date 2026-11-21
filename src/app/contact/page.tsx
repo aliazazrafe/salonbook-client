@@ -56,6 +56,17 @@ export default function ContactPage() {
             <section className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
               <h2 className="font-bold text-stone-900">Location</h2>
               <p className="mt-2 text-stone-600">Dhaka, Bangladesh</p>
+<a
+  href="https://www.google.com/maps/search/?api=1&amp;query=Dhaka%2C+Bangladesh"
+  target="_blank"
+  rel="noreferrer"
+  className="mt-3 inline-flex text-sm font-semibold text-[#647548] underline underline-offset-4"
+>
+  View Dhaka map
+</a>
+<p className="mt-2 text-xs text-stone-500">
+  This map shows the general Dhaka area. A full address is needed for a precise salon pin.
+</p>
             </section>
 
             <section className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
@@ -166,8 +177,58 @@ export default function ContactPage() {
             </form>
           </section>
         </div>
+      
+        <section className="mt-14">
+          <header className="mb-6">
+            <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#647548]">
+              Need to know
+            </p>
+            <h2 className="mt-2 text-2xl font-bold text-stone-900 dark:text-white sm:text-3xl">
+              Frequently Asked Questions
+            </h2>
+          </header>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <details className="rounded-xl border border-stone-200 bg-white p-5 dark:border-stone-800 dark:bg-stone-900">
+              <summary className="cursor-pointer font-semibold text-stone-900 dark:text-white">
+                How do I request an appointment?
+              </summary>
+              <p className="mt-3 text-sm leading-6 text-stone-600 dark:text-stone-300">
+                Sign in, choose a service, barber, date and available time, then submit your appointment request.
+              </p>
+            </details>
+
+            <details className="rounded-xl border border-stone-200 bg-white p-5 dark:border-stone-800 dark:bg-stone-900">
+              <summary className="cursor-pointer font-semibold text-stone-900 dark:text-white">
+                When is the 47% offer available?
+              </summary>
+              <p className="mt-3 text-sm leading-6 text-stone-600 dark:text-stone-300">
+                The offer is for selected Skin Care, Hair Treatment and Spa or Massage services on Fridays and Mondays.
+              </p>
+            </details>
+
+            <details className="rounded-xl border border-stone-200 bg-white p-5 dark:border-stone-800 dark:bg-stone-900">
+              <summary className="cursor-pointer font-semibold text-stone-900 dark:text-white">
+                When is my appointment confirmed?
+              </summary>
+              <p className="mt-3 text-sm leading-6 text-stone-600 dark:text-stone-300">
+                A submitted request is pending until the salon administrator confirms it.
+              </p>
+            </details>
+
+            <details className="rounded-xl border border-stone-200 bg-white p-5 dark:border-stone-800 dark:bg-stone-900">
+              <summary className="cursor-pointer font-semibold text-stone-900 dark:text-white">
+                How can I leave a service review?
+              </summary>
+              <p className="mt-3 text-sm leading-6 text-stone-600 dark:text-stone-300">
+                Sign in and leave a review after your confirmed appointment has taken place.
+              </p>
+            </details>
+          </div>
+        </section>
       </div>
     </main>
   );
 }
+
 

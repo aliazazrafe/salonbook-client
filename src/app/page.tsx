@@ -1,4 +1,5 @@
-﻿import Hero from "@/components/Hero";
+﻿import SpecialOfferBanner from "@/components/SpecialOfferBanner";
+import Hero from "@/components/Hero";
 
 import FeaturedServices from "@/components/FeaturedServices";
 import ServiceCategories from "@/components/ServiceCategories";
@@ -9,6 +10,7 @@ export default function Home() {
     <main>
       
       <Hero />
+      <SpecialOfferBanner />
       <FeaturedServices />
       <ServiceCategories />
       <WhyChooseUs />
@@ -16,4 +18,5 @@ export default function Home() {
     </main>
   );
 }
+
 

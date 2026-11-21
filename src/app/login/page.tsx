@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -47,7 +47,8 @@ export default function LoginPage() {
     try {
       const { error } = await authClient.signIn.social({
         provider,
-        callbackURL: "/",
+        callbackURL: `${window.location.origin}/`,
+        errorCallbackURL: `${window.location.origin}/login`,
       });
 
       if (error) {

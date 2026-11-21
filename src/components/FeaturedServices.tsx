@@ -52,7 +52,7 @@ export default function FeaturedServices() {
 
     try {
       const response = await fetch(
-        `${API_URL}/api/services?status=active&limit=6`,
+        `${API_URL}/api/services?status=active&limit=12`,
         { cache: "no-store" }
       );
 
@@ -62,7 +62,7 @@ export default function FeaturedServices() {
         throw new Error(result.message || "Could not load featured services.");
       }
 
-      setServices(result.services.filter(isActiveService).slice(0, 6));
+      setServices(result.services.filter(isActiveService).slice(0, 12));
     } catch (error) {
       setError(
         error instanceof Error
@@ -80,7 +80,7 @@ export default function FeaturedServices() {
 
   return (
     <section className="bg-stone-50 px-5 py-16 dark:bg-stone-950 sm:px-8 lg:px-12 lg:py-20">
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto w-full max-w-7xl">
         <div className="mb-9 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-orange-700 dark:text-orange-400">
@@ -103,9 +103,9 @@ export default function FeaturedServices() {
         {loading && (
           <div
             aria-label="Loading featured services"
-            className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6"
+            className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
           >
-            {Array.from({ length: 6 }).map((_, index) => (
+            {Array.from({ length: 12 }).map((_, index) => (
               <div
                 key={index}
                 className="animate-pulse overflow-hidden rounded-2xl border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900"
@@ -144,7 +144,7 @@ export default function FeaturedServices() {
         )}
 
         {!loading && !error && services.length > 0 && (
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {services.map((service, index) => {
               const serviceId = service._id || service.id;
               const serviceName =
@@ -193,6 +193,7 @@ export default function FeaturedServices() {
                             ? formatPrice(service.price)
                             : "Contact us"}
                         </p>
+
                         {typeof service.duration === "number" && (
                           <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
                             {service.duration} minutes

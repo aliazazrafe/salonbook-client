@@ -236,6 +236,13 @@ export default function AdminServicesPage() {
           ← Admin Overview
         </Link>
 
+        <Link
+          href="/admin/offers"
+          className="ml-3 inline-flex rounded-lg bg-[#647548] px-4 py-2 text-sm font-semibold text-white hover:bg-[#53643b]"
+        >
+          Manage Offers
+        </Link>
+
         <header className="mb-8 mt-7">
           <p className="text-sm font-bold uppercase tracking-[0.2em] text-orange-700">
             SalonBook administration

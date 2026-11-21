@@ -8,19 +8,6 @@ const API_URL = (
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
 ).replace(/\/+$/, "");
 
-const timeOptions = [
-  "10:00 AM",
-  "11:00 AM",
-  "12:00 PM",
-  "01:00 PM",
-  "02:00 PM",
-  "03:00 PM",
-  "04:00 PM",
-  "05:00 PM",
-  "06:00 PM",
-  "07:00 PM",
-];
-
 type ApiService = {
   _id?: string;
   id?: string;
@@ -40,6 +27,24 @@ type ServiceOption = {
   id: string;
   name: string;
 };
+type ApiBarber = {
+  id: string;
+  name: string;
+  specialty: string;
+  experienceYears: number;
+};
+
+type BarbersResponse = {
+  success?: boolean;
+  message?: string;
+  barbers?: ApiBarber[];
+};
+type AvailabilityResponse = {
+  success?: boolean;
+  message?: string;
+  availableTimes?: string[];
+  bookedTimes?: string[];
+};
 
 const inputClass =
   "w-full rounded-lg border border-stone-300 bg-white px-4 py-3 text-stone-900 outline-none placeholder:text-stone-400 focus:border-orange-700 focus:ring-2 focus:ring-orange-700/15 dark:border-stone-700 dark:bg-stone-900 dark:text-white dark:placeholder:text-stone-500";
@@ -52,9 +57,18 @@ export default function BookAppointmentPage() {
 
   const [services, setServices] = useState<ServiceOption[]>([]);
   const [service, setService] = useState("");
+  const [barbers, setBarbers] = useState<ApiBarber[]>([]);
+  const [barberId, setBarberId] = useState("");
+  const [barbersLoading, setBarbersLoading] = useState(true);
+  const [barbersError, setBarbersError] = useState("");
   const [servicesLoading, setServicesLoading] = useState(true);
   const [servicesError, setServicesError] = useState("");
   const [minDate, setMinDate] = useState("");
+  const [selectedDate, setSelectedDate] = useState("");
+  const [availableTimes, setAvailableTimes] = useState<string[]>([]);
+  const [selectedTime, setSelectedTime] = useState("");
+  const [availabilityLoading, setAvailabilityLoading] = useState(false);
+  const [availabilityError, setAvailabilityError] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -141,6 +155,100 @@ export default function BookAppointmentPage() {
     return () => controller.abort();
   }, []);
 
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function loadBarbers() {
+      setBarbersLoading(true);
+      setBarbersError("");
+
+      try {
+        const response = await fetch(`${API_URL}/api/barbers`, {
+          signal: controller.signal,
+          cache: "no-store",
+        });
+
+        const result: BarbersResponse = await response.json();
+
+        if (!response.ok || !result.success || !Array.isArray(result.barbers)) {
+          throw new Error(result.message || "Could not load barbers.");
+        }
+
+        if (!controller.signal.aborted) {
+          setBarbers(result.barbers);
+        }
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          setBarbersError(
+            error instanceof Error
+              ? error.message
+              : "Could not connect to the server."
+          );
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setBarbersLoading(false);
+        }
+      }
+    }
+
+    void loadBarbers();
+    return () => controller.abort();
+  }, []);
+  async function loadAvailability(date: string, selectedBarberId: string) {
+    setAvailableTimes([]);
+    setSelectedTime("");
+    setAvailabilityError("");
+
+    if (!date || !selectedBarberId) return;
+
+    setAvailabilityLoading(true);
+
+    try {
+      const query = new URLSearchParams({
+        date,
+        barberId: selectedBarberId,
+      });
+
+      const response = await fetch(
+        `${API_URL}/api/appointments/availability?${query.toString()}`,
+        { cache: "no-store" }
+      );
+
+      const result: AvailabilityResponse = await response.json();
+
+      if (
+        !response.ok ||
+        !result.success ||
+        !Array.isArray(result.availableTimes)
+      ) {
+        throw new Error(result.message || "Could not load available times.");
+      }
+
+      setAvailableTimes(result.availableTimes);
+    } catch (error) {
+      setAvailabilityError(
+        error instanceof Error
+          ? error.message
+          : "Could not connect to the server."
+      );
+    } finally {
+      setAvailabilityLoading(false);
+    }
+  }
+
+  async function handleDateChange(date: string) {
+    setSelectedDate(date);
+    setSelectedTime("");
+
+    if (!barberId) {
+      setAvailableTimes([]);
+      setAvailabilityError(date ? "Choose a barber to see available times." : "");
+      return;
+    }
+
+    await loadAvailability(date, barberId);
+  }
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSubmitting(true);
@@ -157,6 +265,7 @@ export default function BookAppointmentPage() {
         },
         body: JSON.stringify({
           service,
+          barberId,
           name: formData.get("name"),
           phone: formData.get("phone"),
           email: formData.get("email"),
@@ -334,6 +443,66 @@ export default function BookAppointmentPage() {
                   )}
               </div>
 
+              <div className="sm:col-span-2">
+                <p className={labelClass}>Choose your barber</p>
+
+                {barbersLoading ? (
+                  <p className="text-sm text-stone-600 dark:text-stone-400">
+                    Loading barber profiles...
+                  </p>
+                ) : barbersError ? (
+                  <p role="alert" className="text-sm text-red-700 dark:text-red-400">
+                    {barbersError}
+                  </p>
+                ) : (
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {barbers.map((barber) => (
+                      <label
+                        key={barber.id}
+                        className={`flex cursor-pointer items-center gap-4 rounded-xl border p-4 transition ${
+                          barberId === barber.id
+                            ? "border-[#647548] bg-[#647548]/10"
+                            : "border-stone-200 hover:border-[#647548] dark:border-stone-700"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="barberId"
+                          value={barber.id}
+                          required
+                          checked={barberId === barber.id}
+                          onChange={() => {
+                            setBarberId(barber.id);
+                            if (selectedDate) {
+                              void loadAvailability(selectedDate, barber.id);
+                            }
+                          }}
+                          className="sr-only"
+                        />
+                        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#647548] text-sm font-bold text-white">
+                          {barber.name
+                            .split(" ")
+                            .map((part) => part[0])
+                            .join("")
+                            .slice(0, 2)
+                            .toUpperCase()}
+                        </span>
+                        <span>
+                          <span className="block font-bold text-stone-900 dark:text-white">
+                            {barber.name}
+                          </span>
+                          <span className="mt-1 block text-sm text-stone-600 dark:text-stone-300">
+                            {barber.specialty}
+                          </span>
+                          <span className="mt-1 block text-xs text-stone-500 dark:text-stone-400">
+                            {barber.experienceYears} years of experience
+                          </span>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
               <div>
                 <label htmlFor="customer-name" className={labelClass}>
                   Full name
@@ -390,33 +559,58 @@ export default function BookAppointmentPage() {
                   name="date"
                   type="date"
                   min={minDate}
+                  value={selectedDate}
+                  onChange={(event) => void handleDateChange(event.target.value)}
                   required
                   className={inputClass}
                 />
               </div>
 
               <div className="sm:col-span-2">
-                <label htmlFor="appointment-time" className={labelClass}>
-                  Preferred time
-                </label>
-                <select
-                  id="appointment-time"
-                  name="time"
-                  required
-                  defaultValue=""
-                  className={inputClass}
-                >
-                  <option value="" disabled>
-                    Select a time
-                  </option>
-                  {timeOptions.map((time) => (
-                    <option key={time} value={time}>
-                      {time}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                <p className={labelClass}>Available appointment times</p>
 
+                {!selectedDate ? (
+                  <p className="text-sm text-stone-600 dark:text-stone-400">
+                    Choose a date to see available times.
+                  </p>
+                ) : availabilityLoading ? (
+                  <p className="text-sm text-stone-600 dark:text-stone-400">
+                    Checking available times...
+                  </p>
+                ) : availabilityError ? (
+                  <p role="alert" className="text-sm text-red-700 dark:text-red-400">
+                    {availabilityError}
+                  </p>
+                ) : availableTimes.length === 0 ? (
+                  <p className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
+                    No times are available on this date. Please choose another date.
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+                    {availableTimes.map((time) => (
+                      <label
+                        key={time}
+                        className={`flex cursor-pointer items-center justify-center rounded-lg border px-3 py-3 text-sm font-semibold transition ${
+                          selectedTime === time
+                            ? "border-[#647548] bg-[#647548]/10 text-[#53643b] dark:text-[#c8d5af]"
+                            : "border-stone-300 text-stone-700 hover:border-[#647548] dark:border-stone-700 dark:text-stone-200"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="time"
+                          value={time}
+                          required
+                          checked={selectedTime === time}
+                          onChange={() => setSelectedTime(time)}
+                          className="sr-only"
+                        />
+                        {time}
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
               <div className="sm:col-span-2">
                 <label htmlFor="appointment-notes" className={labelClass}>
                   Notes{" "}
@@ -442,7 +636,7 @@ export default function BookAppointmentPage() {
 
             <button
               type="submit"
-              disabled={isSubmitting || servicesLoading || services.length === 0}
+              disabled={isSubmitting || servicesLoading || services.length === 0 || barbersLoading || !barberId || !selectedDate || !selectedTime || availabilityLoading}
               className="mt-7 w-full rounded-lg bg-stone-900 px-5 py-3.5 font-semibold text-white transition hover:bg-stone-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-stone-900 dark:hover:bg-stone-200 sm:w-auto"
             >
               {isSubmitting ? "Saving..." : "Send Appointment Request"}
@@ -453,3 +647,4 @@ export default function BookAppointmentPage() {
     </main>
   );
 }
+

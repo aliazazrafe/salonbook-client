@@ -1,6 +1,7 @@
 ﻿import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import ServiceReviews from "@/components/ServiceReviews";
 
 const API_URL = (
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
@@ -25,12 +26,56 @@ type ServiceResponse = {
   service?: Service;
 };
 
+type OfferSettings = {
+  title: string;
+  message: string;
+  discountPercent: number;
+  activeDays: string[];
+  categories: string[];
+  isActive: boolean;
+};
+
+type OfferResponse = {
+  success?: boolean;
+  offer?: Partial<OfferSettings>;
+};
+
+const DEFAULT_OFFER: OfferSettings = {
+  title: "Friday & Monday Special",
+  message: "Offers may be changed or updated by the salon management at any time.",
+  discountPercent: 47,
+  activeDays: ["Friday", "Monday"],
+  categories: ["Skin Care", "Hair Treatment", "Spa & Massage"],
+  isActive: true,
+};
+
 type PageProps = {
   params: Promise<{ id: string }>;
 };
 
 function formatPrice(price: number) {
   return `৳${new Intl.NumberFormat("en-BD").format(price)}`;
+}
+
+function hasSpecialOffer(service: Service, offer?: Partial<OfferSettings>) {
+  const categories = Array.isArray(offer?.categories)
+    ? offer.categories
+    : DEFAULT_OFFER.categories;
+  const category = service.category?.toLowerCase() || "";
+  const name = (service.serviceName || service.name || "").toLowerCase();
+
+  const categoryEligible = categories.some((item) => {
+    const eligibleCategory = item.toLowerCase();
+    return (
+      category.includes(eligibleCategory) ||
+      eligibleCategory.includes(category)
+    );
+  });
+
+  return (
+    (offer?.isActive ?? true) &&
+    (categoryEligible || /spa|massage/i.test(name))
+  );
 }
 
 function ServiceLoading() {
@@ -105,6 +150,20 @@ async function ServiceDetailsContent({ params }: PageProps) {
   }
 
   const service = result.service;
+
+  let offerSettings = DEFAULT_OFFER;
+  try {
+    const offerResponse = await fetch(`${API_URL}/api/offer-settings`, {
+      cache: "no-store",
+    });
+    const offerResult: OfferResponse = await offerResponse.json();
+
+    if (offerResponse.ok && offerResult.success && offerResult.offer) {
+      offerSettings = { ...DEFAULT_OFFER, ...offerResult.offer };
+    }
+  } catch {
+    // Keep default offer settings if the public offer endpoint is unavailable.
+  }
   const serviceName = service.serviceName || service.name || "Salon service";
   const image =
     service.image ||
@@ -112,11 +171,14 @@ async function ServiceDetailsContent({ params }: PageProps) {
     service.images?.[0] ||
     "/heroimage/gent-salon.png";
 
+  const offerAvailable = hasSpecialOffer(service);
+  const discountedPrice = Math.round(service.price * 0.53);
+
   return (
     <main className="min-h-screen bg-stone-50 px-5 py-12 dark:bg-stone-950 sm:px-8 lg:py-16">
       <div className="mx-auto max-w-6xl">
         <Link
-          href="/services"
+          href={offerAvailable ? "/offers" : "/services"}
           className="mb-6 inline-flex font-semibold text-orange-800 hover:underline dark:text-orange-400"
         >
           ← Back to services
@@ -155,17 +217,55 @@ async function ServiceDetailsContent({ params }: PageProps) {
                 and attention to your preferences. Choose a suitable
                 appointment date and time to continue.
               </p>
+
+              {offerAvailable && (
+                <div className="mt-6 rounded-xl border border-orange-300/50 bg-orange-50 p-4 dark:border-orange-900 dark:bg-orange-950/30">
+                  <p className="font-bold text-orange-800 dark:text-orange-300">
+                    {offerSettings.discountPercent}% OFF — {offerSettings.activeDays.join(" & ")}
+                  </p>
+                  <p className="mt-1 text-sm text-stone-700 dark:text-stone-300">
+                    The discounted price applies to appointments scheduled on
+                    Friday or Monday.
+                  </p>
+                </div>
+              )}
             </div>
 
             <aside className="h-fit rounded-xl bg-stone-50 p-5 dark:bg-stone-800">
-              <div className="flex items-center justify-between border-b border-stone-200 pb-4 dark:border-stone-700">
-                <span className="text-sm text-stone-600 dark:text-stone-300">
-                  Price
-                </span>
-                <span className="text-xl font-bold text-stone-900 dark:text-white">
-                  {formatPrice(service.price)}
-                </span>
-              </div>
+              {offerAvailable ? (
+                <>
+                  <div className="flex items-center justify-between border-b border-stone-200 pb-4 dark:border-stone-700">
+                    <span className="text-sm text-stone-600 dark:text-stone-300">
+                      Regular price
+                    </span>
+                    <span className="font-semibold text-stone-500 line-through">
+                      {formatPrice(service.price)}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between border-b border-stone-200 py-4 dark:border-stone-700">
+                    <span className="text-sm font-semibold text-orange-800 dark:text-orange-300">
+                      Offer price
+                    </span>
+                    <span className="text-xl font-extrabold text-orange-800 dark:text-orange-300">
+                      {formatPrice(discountedPrice)}
+                    </span>
+                  </div>
+
+                  <p className="pt-3 text-xs text-stone-500 dark:text-stone-400">
+                    {offerSettings.discountPercent}% discount for {offerSettings.activeDays.join(" and ")} appointments
+                  </p>
+                </>
+              ) : (
+                <div className="flex items-center justify-between border-b border-stone-200 pb-4 dark:border-stone-700">
+                  <span className="text-sm text-stone-600 dark:text-stone-300">
+                    Price
+                  </span>
+                  <span className="text-xl font-bold text-stone-900 dark:text-white">
+                    {formatPrice(service.price)}
+                  </span>
+                </div>
+              )}
 
               <div className="flex items-center justify-between py-4">
                 <span className="text-sm text-stone-600 dark:text-stone-300">
@@ -185,7 +285,12 @@ async function ServiceDetailsContent({ params }: PageProps) {
             </aside>
           </div>
         </article>
+
+        <ServiceReviews serviceId={id} />
       </div>
     </main>
   );
 }
+
+
+
