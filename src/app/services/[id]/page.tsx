@@ -4,7 +4,9 @@ import { Suspense } from "react";
 import ServiceReviews from "@/components/ServiceReviews";
 
 const API_URL = (
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
+  process.env.BACKEND_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    "http://localhost:5000"
 ).replace(/\/+$/, "");
 
 type Service = {
@@ -291,6 +293,3 @@ async function ServiceDetailsContent({ params }: PageProps) {
     </main>
   );
 }
-
-
-
