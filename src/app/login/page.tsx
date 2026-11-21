@@ -1,12 +1,10 @@
 ﻿"use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { authClient } from "@/lib/auth-client";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -23,7 +21,6 @@ export default function LoginPage() {
       const { error } = await authClient.signIn.email({
         email,
         password,
-        callbackURL: "/",
       });
 
       if (error) {
@@ -31,8 +28,19 @@ export default function LoginPage() {
         return;
       }
 
-      router.push("/");
-      router.refresh();
+      const { data: sessionData, error: sessionError } =
+        await authClient.getSession({
+          query: { disableCookieCache: true },
+        });
+
+      if (sessionError || !sessionData?.user) {
+        setMessage("Could not load your account information. Please try again.");
+        return;
+      }
+
+      const role = (sessionData.user as { role?: string }).role;
+
+      window.location.assign(role === "admin" ? "/admin" : "/dashboard");
     } catch {
       setMessage("Could not reach the auth server. Make sure it is running.");
     } finally {
@@ -40,7 +48,7 @@ export default function LoginPage() {
     }
   }
 
-  async function handleSocialSignIn(provider: "google" | "facebook") {
+  async function handleSocialSignIn(provider: "google") {
     setMessage("");
     setLoading(true);
 
@@ -162,20 +170,7 @@ export default function LoginPage() {
           Continue with Google
         </button>
 
-        <button
-          type="button"
-          disabled={loading}
-          onClick={() => handleSocialSignIn("facebook")}
-          className="mt-3 flex w-full items-center justify-center gap-3 rounded-lg border border-stone-300 bg-white px-5 py-3 font-semibold text-stone-800 transition hover:bg-stone-50 disabled:opacity-60 dark:border-stone-600 dark:bg-stone-900 dark:text-white dark:hover:bg-stone-800"
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5">
-            <path
-              fill="#1877F2"
-              d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073c0 6.019 4.388 11.019 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.026 1.792-4.7 4.533-4.7 1.312 0 2.686.235 2.686.235v2.97h-1.514c-1.491 0-1.956.93-1.956 1.887v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.092 24 18.092 24 12.073Z"
-            />
-          </svg>
-          Continue with Facebook
-        </button>
+        
 
         <p className="mt-6 text-center text-sm text-stone-600 dark:text-stone-300">
           Don’t have an account?{" "}
@@ -190,3 +185,6 @@ export default function LoginPage() {
     </main>
   );
 }
+
+
+

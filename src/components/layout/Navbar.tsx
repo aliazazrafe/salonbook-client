@@ -33,7 +33,7 @@ export default function Navbar() {
   const navLinks = session
     ? [
         ...publicLinks.slice(0, 2),
-        { label: "Dashboard", href: "/dashboard" },
+        { label: "Dashboard", href: (session.user as { role?: string }).role === "admin" ? "/admin" : "/dashboard" },
         ...publicLinks.slice(2),
       ]
     : publicLinks;
