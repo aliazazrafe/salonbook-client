@@ -16,6 +16,12 @@ type Overview = {
     total: number;
     active: number;
   };
+  customers: {
+    total: number;
+  };
+  payments: {
+    successful: number;
+  };
 };
 
 type Appointment = {
@@ -215,6 +221,39 @@ export default function AdminPage() {
           </button>
         </div>
 
+        <nav className="mb-8 flex flex-wrap justify-center gap-3">
+          <Link
+            href="/admin/services"
+            className="rounded-lg bg-[#647548] px-5 py-3 font-semibold text-white transition hover:bg-[#53643b]"
+          >
+            Manage Services
+          </Link>
+          <Link
+            href="/admin/users"
+            className="rounded-lg bg-[#647548] px-5 py-3 font-semibold text-white transition hover:bg-[#53643b]"
+          >
+            Manage Users
+          </Link>
+          <Link
+            href="#appointment-requests"
+            className="rounded-lg bg-[#647548] px-5 py-3 font-semibold text-white transition hover:bg-[#53643b]"
+          >
+            Appointments
+          </Link>
+          <Link
+            href="/admin/transactions"
+            className="rounded-lg bg-[#647548] px-5 py-3 font-semibold text-white transition hover:bg-[#53643b]"
+          >
+            Transactions
+          </Link>
+          <Link
+            href="/dashboard"
+            className="rounded-lg bg-[#647548] px-5 py-3 font-semibold text-white transition hover:bg-[#53643b]"
+          >
+            Customer Dashboard
+          </Link>
+        </nav>
+
         {notice && (
           <p
             role="status"
@@ -239,54 +278,47 @@ export default function AdminPage() {
         )}
 
         {overview && (
-          <>
-            <section>
-              <h2 className="mb-4 text-xl font-bold text-stone-900 dark:text-white">
-                Appointments
-              </h2>
-
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <StatCard
-                  label="Total appointments"
-                  value={overview.appointments.total}
-                />
-                <StatCard
-                  label="Pending"
-                  value={overview.appointments.pending}
-                  detail="Waiting for admin review"
-                />
-                <StatCard
-                  label="Confirmed"
-                  value={overview.appointments.confirmed}
-                />
-                <StatCard
-                  label="Cancelled"
-                  value={overview.appointments.cancelled}
-                />
-              </div>
-            </section>
-
-            <section className="mt-8">
-              <h2 className="mb-4 text-xl font-bold text-stone-900 dark:text-white">
-                Services
-              </h2>
-
-              <div className="grid gap-4 sm:grid-cols-2">
-                <StatCard
-                  label="Total services"
-                  value={overview.services.total}
-                />
-                <StatCard
-                  label="Active services"
-                  value={overview.services.active}
-                  detail="Visible to customers"
-                />
-              </div>
-            </section>
-          </>
+          <section className="mb-10">
+            <h2 className="mb-4 text-xl font-bold text-stone-900 dark:text-white">
+              Admin Overview
+            </h2>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <StatCard
+                label="Total customers"
+                value={overview.customers.total}
+              />
+              <StatCard
+                label="Active services"
+                value={overview.services.active}
+                detail="Visible to customers"
+              />
+              <StatCard
+                label="Total appointments"
+                value={overview.appointments.total}
+              />
+              <StatCard
+                label="Pending appointments"
+                value={overview.appointments.pending}
+                detail="Waiting for admin review"
+              />
+              <StatCard
+                label="Confirmed appointments"
+                value={overview.appointments.confirmed}
+              />
+              <StatCard
+                label="Cancelled appointments"
+                value={overview.appointments.cancelled}
+              />
+              <StatCard
+                label="Successful payments"
+                value={overview.payments.successful}
+                detail="Paid appointments"
+              />
+            </div>
+          </section>
         )}
 
-        <section className="mt-10">
+        <section id="appointment-requests" className="mt-10 scroll-mt-24">
           <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h2 className="text-xl font-bold text-stone-900 dark:text-white">
@@ -394,21 +426,9 @@ export default function AdminPage() {
           )}
         </section>
 
-        <nav className="mt-8 flex flex-wrap gap-3">
-          <Link
-            href="/services"
-            className="rounded-lg bg-[#647548] px-5 py-3 font-semibold text-white transition hover:bg-[#53643b]"
-          >
-            Browse Services
-          </Link>
-          <Link
-            href="/dashboard"
-            className="rounded-lg border border-stone-300 px-5 py-3 font-semibold text-stone-800 transition hover:bg-stone-100 dark:border-stone-600 dark:text-white dark:hover:bg-stone-900"
-          >
-            Customer Dashboard
-          </Link>
-        </nav>
+
       </div>
     </main>
   );
 }
+

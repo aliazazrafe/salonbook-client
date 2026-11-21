@@ -226,6 +226,45 @@ export default function AdminServicesPage() {
     }
   }
 
+  async function deleteService(service: Service) {
+    const serviceName = service.serviceName || service.name || "this service";
+    const confirmed = window.confirm(
+      `Delete "${serviceName}" permanently? This action cannot be undone.`
+    );
+
+    if (!confirmed) return;
+
+    setErrorMessage("");
+    setNotice("");
+
+    try {
+      const response = await apiFetch(
+        `${apiUrl}/api/admin/services/${service._id}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+        }
+      );
+
+      const result: { success: boolean; message?: string } =
+        await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Could not delete the service.");
+      }
+
+      if (editingId === service._id) {
+        resetForm();
+      }
+
+      setNotice("Service deleted successfully.");
+      setRefreshKey((current) => current + 1);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Could not connect to the server."
+      );
+    }
+  }
   return (
     <main className="min-h-screen bg-stone-50 px-5 py-10 dark:bg-stone-950 sm:px-8 lg:py-14">
       <div className="mx-auto max-w-6xl">
@@ -389,19 +428,72 @@ export default function AdminServicesPage() {
                 htmlFor="image"
                 className="mb-2 block text-sm font-semibold text-stone-800 dark:text-stone-200"
               >
-                Image URL
+                Upload service image (PNG, JPG, or WEBP; max 2 MB)
               </label>
               <input
                 id="image"
                 name="image"
-                type="url"
-                value={form.image}
-                onChange={(event) =>
-                  setForm({ ...form, image: event.target.value })
-                }
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                required={!form.image}
+                onChange={(event) => {
+                  const input = event.currentTarget;
+                  const file = input.files?.[0];
+                  if (!file) return;
+
+                  const allowedTypes = [
+                    "image/png",
+                    "image/jpeg",
+                    "image/webp",
+                  ];
+
+                  if (!allowedTypes.includes(file.type)) {
+                    setErrorMessage("Choose a PNG, JPG, or WEBP image.");
+                    input.value = "";
+                    return;
+                  }
+
+                  if (file.size > 2 * 1024 * 1024) {
+                    setErrorMessage("Image size must be 2 MB or less.");
+                    input.value = "";
+                    return;
+                  }
+
+                  setErrorMessage("");
+                  const reader = new FileReader();
+
+                  reader.onload = () => {
+                    if (typeof reader.result !== "string") {
+                      setErrorMessage("Could not read the selected image.");
+                      input.value = "";
+                      return;
+                    }
+
+                    setForm((current) => ({
+                      ...current,
+                      image: reader.result as string,
+                    }));
+                    input.value = "";
+                  };
+
+                  reader.onerror = () => {
+                    setErrorMessage("Could not read the selected image.");
+                    input.value = "";
+                  };
+
+                  reader.readAsDataURL(file);
+                }}
                 className="w-full rounded-lg border border-stone-300 bg-white px-4 py-3 text-stone-900 outline-none focus:border-[#647548] focus:ring-2 focus:ring-[#647548]/20 dark:border-stone-600 dark:bg-stone-800 dark:text-white"
-                placeholder="https://example.com/service-image.jpg"
               />
+
+              {form.image && (
+                <div
+                  role="img"
+                  aria-label="Service image preview"
+                  className="mt-3 h-40 w-64 rounded-lg border border-stone-300 bg-cover bg-center dark:border-stone-600"
+                  style={{ backgroundImage: `url("${form.image}")` }}
+                />
+              )}
             </div>
 
             <div>
@@ -547,7 +639,13 @@ export default function AdminServicesPage() {
                           >
                             Deactivate
                           </button>
-                        )}
+                        )}                        <button
+                          type="button"
+                          onClick={() => void deleteService(service)}
+                          className="rounded-lg border border-red-300 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 dark:border-red-900 dark:text-red-300 dark:hover:bg-red-950/40"
+                        >
+                          Delete
+                        </button>
                       </div>
                     </div>
                   </article>
