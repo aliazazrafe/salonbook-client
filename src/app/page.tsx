@@ -1,4 +1,4 @@
-﻿import SpecialOfferBanner from "@/components/SpecialOfferBanner";
+import SpecialOfferBanner from "@/components/SpecialOfferBanner";
 import Hero from "@/components/Hero";
 
 import FeaturedServices from "@/components/FeaturedServices";

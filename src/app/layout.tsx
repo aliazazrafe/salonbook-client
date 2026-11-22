@@ -1,4 +1,4 @@
-﻿import BackToHome from "@/components/layout/BackToHome";
+import BackToHome from "@/components/layout/BackToHome";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Suspense } from "react";

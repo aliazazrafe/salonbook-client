@@ -1,4 +1,4 @@
-﻿export function apiFetch(
+export function apiFetch(
   input: RequestInfo | URL,
   init: RequestInit = {},
 ): Promise<Response> {

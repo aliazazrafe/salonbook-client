@@ -1,4 +1,4 @@
-﻿const highlights = [
+const highlights = [
   {
     title: "Haircut & Styling",
     description:

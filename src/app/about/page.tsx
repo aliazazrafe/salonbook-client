@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import RevealOnScroll from "@/components/RevealOnScroll";
 
 const values = [
