@@ -39,6 +39,7 @@ export default function RegisterPage() {
         email,
         password,
         image: image || undefined,
+        role: "customer",
         callbackURL: "/",
       });
 
@@ -228,3 +229,4 @@ export default function RegisterPage() {
     </main>
   );
 }
+
